@@ -10,11 +10,19 @@ This is an implementation of a Binary Search Tree via Right and Left child nodes
 Help for this project came from Jayden Huang
 */
 
+//Colors
+#define RESET "\033[0m"
+#define RED   "\033[31m"
+#define BLUE  "\033[34m"
+
 using namespace std;
 //Function Prototypes
 bool search(Tree* head, int input);
 void printTree(Tree* head, int space);
 void treeAdd(Tree* newNode, Tree* current, Tree* & head);
+void rbtADD(Tree* newNode, Tree* current, Tree* & head);
+void leftRotate(Node* &head, Node* target);
+void rightRotate(Node* &head, Node* target);
 void treeRemove(Tree* current, Tree* &head, Tree* parent, int data);
 
 //Main method
@@ -96,8 +104,8 @@ cin >> input;
 void treeAdd(Tree* newNode, Tree* current, Tree* & head){
     //If the tree is empty, make the new one head
     if(head == NULL){
-      head = newNode;
-    return;
+        head = newNode;
+        return;
     }
     //Otherwise if the new node's data is bigger
     else if(newNode->getData() > current->getData()){ 
@@ -142,6 +150,39 @@ void treeAdd(Tree* newNode, Tree* current, Tree* & head){
         return;
     }
 }
+//https://algorithmtutor.com/Data-Structures/Tree/Red-Black-Trees/
+void rbtAdd(Tree* newNode, Tree* current, Tree* & head){
+    treeAdd(newNode, current, head);
+    while(newNode->getParent()->getColor() == 1){
+        if(newNode->getParent() == newNode->getParent()->getRight()){
+            Tree* uncle = newNode->getParent()->getParent()->getLeft();
+            if(uncle->getColor() == 1){ //Parent is red and Uncle is red too.
+                uncle->setColor(0);
+                newNode->getParent()->setColor(0);
+                newNode->getParent()->getParent()->setColor(1);
+                newNode = newNode->getParent()->getParent();
+            }
+            /*
+            Parent is right child of Grandparent and NewNode is right child of Parent
+
+            or
+
+            Parent is right child of Grandparent and NewNode is left child of Parent
+            */
+            else if(newNode = newNode->getParent()->getLeft()){ 
+                newNode = newNode->getParent();
+                leftRotate(newNode, current, head);
+                newNode->getParent()->setColor(0);
+                newNode->getParent()->getParent()->setColor(1);
+                rightRotate(newNode->getParent()->getParent(), current, head);
+            }
+        }
+        else{
+            head->setColor(0);  
+        }
+    }
+}
+
 //Print function from heap
 void printTree(Tree* head, int space){
 if(head == NULL){

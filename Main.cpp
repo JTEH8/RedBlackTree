@@ -34,7 +34,7 @@ void showTrunks(Trunk* p){
     cout << p->str;
 }
 //Function Prototypes
-bool search(Tree* head, int input);
+// bool search(Tree* head, int input);
 void printTree(Tree* start, Trunk* previous, bool isLeft);
 void treeAdd(Tree* newTree, Tree* & current, Tree* & previous ,Tree* & head);
 void rbtADD(Tree* newTree, Tree* current, Tree* & head);
@@ -106,9 +106,9 @@ cin >> input;
     }
     //Search the tree
     else if(strcmp(input, "SEARCH") == 0){
-        cout << "What's the number that you want to search for?" << endl;
+     cout << "What's the number that you want to search for?" << endl;
         cin >> input3;
-        search(tree, input3);
+	//    search(tree, input3);
         }
     //Quit RBT
     else if(strcmp(input, "QUIT") == 0){
@@ -134,6 +134,7 @@ void treeAdd(Tree* newTree, Tree*& current, Tree*& previous, Tree* & head){
             current = newTree;
             previous->setLeft(current);
             current->setParent(previous);
+	    current->setColor(1);
             treeBalance(head, current);
             return;
             }
@@ -149,7 +150,8 @@ void treeAdd(Tree* newTree, Tree*& current, Tree*& previous, Tree* & head){
             current = newTree;
             previous->setRight(current);
             current->setParent(previous);
-            treeBalance(head,current);
+	    current->setColor(1);
+	    treeBalance(head,current);
             return;
         }
         else{
@@ -168,8 +170,8 @@ void fileAdd(Tree* &head){
         //Opens the file and adds the numbers one by one to the tree
 	    fstream nums;
         nums.open(input);
-        //Does this 10 times
-        for(int i = 0; i < 10; i++){
+        //Does this 2 times
+        for(int i = 0; i < 2; i++){
             nums >> temp;
             Tree* newTree = new Tree(temp);
             Tree* current = head;
@@ -177,8 +179,8 @@ void fileAdd(Tree* &head){
             treeAdd(newTree, current, previous, head);
             if(current != head){
                 treeBalance(head,current);
-            }
-        }
+	    }
+	    }
 }
 //https://algorithmtutor.com/Data-Structures/Tree/Red-Black-Trees/
 //Print function, with trunk structs
@@ -309,7 +311,8 @@ void rightRotate(Tree* & head, Tree* & target){
 void treeBalance(Tree* &head, Tree* &current){
     Tree* parent = NULL;
     Tree* grandParent = NULL;
-    while(current != head && current->getColor() != 0 && current->getParent()->getColor() == 1){
+    //While current isn't root, not black, and parent is red.
+    while((current != head) && (current->getColor() != 0) && (current->getParent()->getColor() == 1)){
         parent = current->getParent();
         grandParent = parent->getParent();
         //Case A (Where the parent is the left child of the grandparent)
@@ -367,7 +370,5 @@ void treeBalance(Tree* &head, Tree* &current){
         }
     }
     //Reset head to black
-    head->setColor(0);
-    
-    
+    head->setColor(0);    
 }

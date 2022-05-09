@@ -5,9 +5,9 @@
 
 /*
 Author: Jeffrey Teh
-Date Completed: 4/21/2022
-This is an implementation of a Binary Search Tree via Right and Left child nodes.
-Help for this project came from Jayden Huang
+Date Completed: 5/8/2022
+This is an implementation of a Red Black Tree
+Help for this project came from Nathan Zou and Jayden Huang
 */
 
 //Colors
@@ -16,7 +16,7 @@ Help for this project came from Jayden Huang
 #define BLUE  "\033[34m"
 
 using namespace std;
-
+//Struct for Printing (Thanks to Nathan for the idea)
 struct Trunk{
     Trunk* previous;
     char* str;
@@ -35,14 +35,13 @@ void showTrunks(Trunk* p){
 }
 //Function Prototypes
 bool search(Tree* head, int input);
-void PARSE(char* input, int* modify, int& count);
 void printTree(Tree* start, Trunk* previous, bool isLeft);
-void treeAdd(Tree* newNode, Tree* & current, Tree* & previous ,Tree* & head);
-void rbtADD(Tree* newNode, Tree* current, Tree* & head);
+void treeAdd(Tree* newTree, Tree* & current, Tree* & previous ,Tree* & head);
+void rbtADD(Tree* newTree, Tree* current, Tree* & head);
 void fileAdd(Tree* &head);
 void leftRotate(Tree* & head, Tree* & target);                                                                 
 void rightRotate(Tree* & head, Tree* & target);
-void treeRemove(Tree* current, Tree* &head, Tree* parent, int data);
+//void treeRemove(Tree* current, Tree* &head, Tree* parent, int data);
 void treeBalance(Tree* &head, Tree* &current);
 
 //Main method
@@ -62,7 +61,7 @@ cout << "Welcome to the Red Black Tree! You can add numbers to the tree (ADD) an
 cout << "As an aside, make sure you're not entering duplicate numbers (Ones you've already entered or have added via file). Valid entries include anything in the range from 1-999." << endl;    
 //Read in input
 cin >> input;
-//When adding numbers to the BST
+//When adding numbers to the RBT
     if(strcmp(input, "ADD") == 0){
         cout << "Do you want to add via direct input (INPUT) or via file (FILE)" << endl;
         //If the user wants to add directly or by file
@@ -77,10 +76,10 @@ cin >> input;
 	    }
 	    else{
             */
-	    Tree* newNode = new Tree(input3);
+	    Tree* newTree = new Tree(input3);
         Tree* current = tree;
         Tree* previous = NULL;
-	    treeAdd(newNode, current, previous, tree);
+	    treeAdd(newTree, current, previous, tree);
         if(current != tree){
             treeBalance(tree,current);
         }
@@ -92,12 +91,14 @@ cin >> input;
         }
     }
     //If the user wants to delete
-    else if(strcmp(input, "DELETE") == 0){
+    /*else if(strcmp(input, "DELETE") == 0){
         cout << "Enter the number (In the tree) that you want to delete." << endl;
         cin >> input3;
         //Remove the number from the tree, if it's there
         treeRemove(tree, tree, tree, input3);
     } 
+    */
+   //Printing
     else if(strcmp(input, "PRINT") == 0){
         cout << endl;
         printTree(tree, NULL, false);
@@ -109,7 +110,7 @@ cin >> input;
         cin >> input3;
         search(tree, input3);
         }
-    //Quit BST
+    //Quit RBT
     else if(strcmp(input, "QUIT") == 0){
       cout << "Thanks for using BST!" << endl;
       running = false;
@@ -117,20 +118,20 @@ cin >> input;
     }
 }
 //Add a number to the tree
-void treeAdd(Tree* newNode, Tree*& current, Tree*& previous, Tree* & head){
+void treeAdd(Tree* newTree, Tree*& current, Tree*& previous, Tree* & head){
     //If the tree is empty, make the new one head
     if(head == NULL){
-        head = newNode;
+        head = newTree;
         current = head;
         head->setColor(0); //Head is black
     }
-    //Otherwise if the new node's data is bigger
-    else if(newNode->getData() > current->getData()){ 
+    //Otherwise if the new Tree's data is bigger
+    else if(newTree->getData() > current->getData()){ 
         previous = current;
         current = current->getLeft();
-        //And if the current node's right is NULL
+        //And if the current Tree's right is NULL
         if(current == NULL){
-            current = newNode;
+            current = newTree;
             previous->setLeft(current);
             current->setParent(previous);
             treeBalance(head, current);
@@ -138,66 +139,49 @@ void treeAdd(Tree* newNode, Tree*& current, Tree*& previous, Tree* & head){
             }
         //Otherwise go onto the right side of the tree
         else{
-            treeAdd(newNode, current, previous, head);
+            treeAdd(newTree, current, previous, head);
             }
         }
         else{
         previous = current;
         current = current->getRight();
         if(current == NULL){
-            current = newNode;
+            current = newTree;
             previous->setRight(current);
             current->setParent(previous);
             treeBalance(head,current);
             return;
         }
         else{
-          treeAdd(newNode, current, previous, head);
+          treeAdd(newTree, current, previous, head);
             }
         }
-    }
 
+    }
+//Adding numbers to the tree via file input (Buggy, could use some work)
 void fileAdd(Tree* &head){
         char input[100];
-        char input2[100];
         int temp = 0;
-        int mods[100];
-        int modSize = 0;
-        int count = 0;
+        int* arr;
         cout << "Enter a file name: (e.g. filename.txt)" << endl;
         cin >> input;
-        streampos size;
-        ifstream file(input, ios::in | ios::binary| ios::ate);
-        if(file.is_open() == true){
-            size = file.tellg();
-            file.seekg(0, ios::beg);
-            file.read(input, size);
-            file.close();
-            PARSE(input, mods, count);
-            cout << "Input: ";
-            for(int i = 0; i < 100; i++){
-                if(mods[i] != 0){
-                    cout << mods[i] << " ";
-                    modSize++;
-                }
-            }
-            cout << endl << "Size: " << modSize << endl;
-            Tree* current = NULL;
+        //Opens the file and adds the numbers one by one to the tree
+	    fstream nums;
+        nums.open(input);
+        //Does this 10 times
+        for(int i = 0; i < 10; i++){
+            nums >> temp;
+            Tree* newTree = new Tree(temp);
+            Tree* current = head;
             Tree* previous = NULL;
-            for(int i = 0; i <modSize; i++){
-                if(mods[i] == 0){
-                    break;
-                }
-                current = head;
-                Tree* newNode = new Tree(mods[i]);
-                treeAdd(newNode, current, previous, head);
+            treeAdd(newTree, current, previous, head);
+            if(current != head){
+                treeBalance(head,current);
             }
         }
-	}
-
+}
 //https://algorithmtutor.com/Data-Structures/Tree/Red-Black-Trees/
-
-//Print function from heap
+//Print function, with trunk structs
 void printTree(Tree* start, Trunk* previous, bool isLeft){
 if(start == NULL){
         return;
@@ -209,13 +193,16 @@ if(start == NULL){
     printTree(start->getLeft(), trunk, true); 
     //Formatting
     if(!previous){
+        //Diffrentiating for head
         trunk->str = (char*)("---"); 
     }
     else if(isLeft == true){
+        //If it's a left child
         trunk->str = (char*)(".---");
         oldStr = (char*)("  |");     
     }
     else{
+        //If it's a right child
         trunk->str = (char*)("'---");
         previous->str = oldStr;
     }
@@ -232,33 +219,16 @@ if(start == NULL){
         previous->str = oldStr;
     }
     trunk->str = (char*)("   |");
+    //GO right
     printTree(start->getRight(), trunk, false);
 }
-//Parses input
-void PARSE(char* input, int* modify, int &count){
-    int x = 0; //# of chars before each space
-    for(int i = 0; i < strlen(input); i ++){
-        if(input[i] == ' '){
-            if(x == 1){
-                int temp = 0;
-                temp = input[i-1] - '0';
-                modify[count] = temp;
-                count ++;
-                x = 0;
-            }
-            else{
-                int temp = 0;
-                for(int j = 0; j < x; j++){
-                    temp = 10*temp + (input[i-x+j] - '0');
-                }
-                modify[count] = temp;
-                count++;
-            }
-        }
-    }
-}
 
-//Search for a number (Also helps to prevent duplicates)
+
+/*
+
+This isn't necessary for RBT at the moment (Just a holdover from BST)
+
+Search for a number (Also helps to prevent duplicates)
 bool search(Tree* head, int input){
     //If the tree is empty
     if(head == NULL){
@@ -288,7 +258,10 @@ bool search(Tree* head, int input){
     }
     return false;
 }
+*/
+//Left rotatation
 void leftRotate(Tree* & head, Tree* & target){
+    //Rotate from the right, and move it down to the left
     Tree* rightPtr = target->getRight();
     target->setRight(rightPtr->getLeft());
     if(target->getRight() != NULL){
@@ -299,17 +272,20 @@ void leftRotate(Tree* & head, Tree* & target){
     if(target->getParent() == NULL){
         head = rightPtr;
     }
+    //If the target is the parent's left child
     else if(target == (target->getParent()->getLeft())){
         target->getParent()->setLeft(rightPtr);
     }
+    //iF the target is the parent's right child
     else{
         target->getParent()->setRight(rightPtr);
     }
     rightPtr->setLeft(target);
     target->setParent(rightPtr);
 }   
-
+//Rotatate down to the right
 void rightRotate(Tree* & head, Tree* & target){
+    //Start on the left, rotate to the right and down
     Tree* leftPtr = target->getLeft();
     target->setLeft(leftPtr ->getRight());
     if(target->getLeft() != NULL){
@@ -363,7 +339,7 @@ void treeBalance(Tree* &head, Tree* &current){
                 current = parent;
             }
         }
-        //Case B: PArent is the right child of grandparent
+        //Case B: Parent is the right child of grandparent
         else{
             Tree* uncle = grandParent->getLeft();
             //Case 1B: Uncle is red, and recolor
@@ -392,4 +368,6 @@ void treeBalance(Tree* &head, Tree* &current){
     }
     //Reset head to black
     head->setColor(0);
+    
+    
 }

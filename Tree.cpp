@@ -25,6 +25,10 @@ void Tree::setValue(int newVal){
 void Tree::setColor(int newColor){
     color = newColor;
 }
+
+void Tree::setParent(Tree* newParent){
+    parent = newParent;
+}
 //Get methods
 Tree* Tree::getParent(){
     return parent;

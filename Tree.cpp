@@ -5,6 +5,7 @@
 
 //Constructors
 Tree::Tree(int newVal){
+    parent = NULL;
     right = NULL;
     left = NULL;
     data = newVal;

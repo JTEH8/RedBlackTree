@@ -112,7 +112,7 @@ cin >> input;
         }
     //Quit RBT
     else if(strcmp(input, "QUIT") == 0){
-      cout << "Thanks for using BST!" << endl;
+      cout << "Thanks for using RBT!" << endl;
       running = false;
     }
     }

@@ -58,7 +58,7 @@ bool running = true;
 while(running == true){
 //Prompt text
 cout << "Welcome to the Red Black Tree! You can add numbers to the tree (ADD) and print the tree (PRINT). To quit type QUIT." << endl; 
-cout << "As an aside, make sure you're not entering duplicate numbers (Ones you've already entered or have added via file). Valid entries include anything in the range from 1-999." << endl;    
+cout << "Valid entries include anything in the range from 1-999." << endl;    
 //Read in input
 cin >> input;
 //When adding numbers to the RBT
@@ -171,7 +171,7 @@ void fileAdd(Tree* &head){
 	    fstream nums;
         nums.open(input);
         //Does this 2 times
-        for(int i = 0; i < 2; i++){
+        for(int i = 0; i < 10; i++){
             nums >> temp;
             Tree* newTree = new Tree(temp);
             Tree* current = head;

@@ -34,7 +34,7 @@ void showTrunks(Trunk* p){
     cout << p->str;
 }
 //Function Prototypes
-// bool search(Tree* head, int input);
+bool search(Tree* head, int input);
 void printTree(Tree* start, Trunk* previous, bool isLeft);
 void treeAdd(Tree* newTree, Tree* & current, Tree* & previous ,Tree* & head);
 void rbtADD(Tree* newTree, Tree* current, Tree* & head);
@@ -70,12 +70,7 @@ cin >> input;
         if(strcmp(input2, "INPUT") == 0){
             cout << "Enter the number that you want to add to the tree." << endl;
             cin >> input3;
-        /*Prevents duplicates
-	    if(search(tree, input3) == true){
-	      cout << "No duplicate numbers in the tree! Please enter another number." << endl;
-	    }
-	    else{
-            */
+        
 	    Tree* newTree = new Tree(input3);
         Tree* current = tree;
         Tree* previous = NULL;
@@ -84,7 +79,6 @@ cin >> input;
             treeBalance(tree,current);
         }
         cout << endl << input3 << " added to tree." << endl << endl;
-	    //}
 	    }
         else if(strcmp(input2, "FILE") == 0){
         fileAdd(tree);
@@ -108,7 +102,7 @@ cin >> input;
     else if(strcmp(input, "SEARCH") == 0){
      cout << "What's the number that you want to search for?" << endl;
         cin >> input3;
-	//    search(tree, input3);
+        search(tree, input3);
         }
     //Quit RBT
     else if(strcmp(input, "QUIT") == 0){
@@ -225,42 +219,29 @@ if(start == NULL){
     printTree(start->getRight(), trunk, false);
 }
 
-
-/*
-
-This isn't necessary for RBT at the moment (Just a holdover from BST)
-
-Search for a number (Also helps to prevent duplicates)
+//Search for a number (Also helps to prevent duplicates)
 bool search(Tree* head, int input){
-    //If the tree is empty
+  //If the tree is empty
     if(head == NULL){
-        cout << "Number isn't the tree. It's thus valid to add." << endl;
+        cout << "Number isn't the tree." << endl;
         return false;
     }
-    //If it isn't the head, and head exists
-    else if(head->getData() != input && head != NULL){
-        //If the input is smaller than the head, go down the left
-        if(head->getData() > input){
-            search(head->getLeft(), input);
-            }
-        //Otherwise if the input is larger than the head, go down the right
-        else if(head->getData() < input){
-            search(head->getRight(), input);
-            }
-        }
-    //If the head has the searched for number
     else if(head->getData() == input){
-        cout << "Your number is present in the tree!" << endl;
-        return true;
+      cout << "Your number is present in the tree!" << endl;
+      return true;
     }
-    else{
-        //Otherwise if you get to the end (If it's not caught by the top), then the number isn't there
-        cout << "Number isn't in the tree. It's thus valid to add." << endl;
-        return false;
+    //If the data is larger than head, try going right
+    else if(head->getData() > input){
+       search(head->getRight(),input);
+    }
+    //If the data is smaller than head, go left
+    else if(head->getData() < input){
+      search(head->getLeft(), input);
     }
     return false;
 }
-*/
+
+
 //Left rotatation
 void leftRotate(Tree* & head, Tree* & target){
     //Rotate from the right, and move it down to the left

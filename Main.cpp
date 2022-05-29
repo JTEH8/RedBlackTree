@@ -39,9 +39,9 @@ void printTree(Tree* start, Trunk* previous, bool isLeft);
 void treeAdd(Tree* newTree, Tree* & current, Tree* & previous ,Tree* & head);
 void rbtADD(Tree* newTree, Tree* current, Tree* & head);
 void fileAdd(Tree* &head);
-void leftRotate(Tree* & head, Tree* & target);                                                                 
+void leftRotate(Tree* & head, Tree* & target);                                         
 void rightRotate(Tree* & head, Tree* & target);
-//void treeRemove(Tree* current, Tree* &head, Tree* parent, int data);
+void treeRemove(Tree* current, Tree* &head, Tree* parent, int data);
 void treeBalance(Tree* &head, Tree* &current);
 
 //Main method
@@ -57,7 +57,7 @@ bool running = true;
 //While the program is running
 while(running == true){
 //Prompt text
-cout << "Welcome to the Red Black Tree! You can add numbers to the tree (ADD) and print the tree (PRINT). To quit type QUIT." << endl; 
+cout << "Welcome to the Red Black Tree! You can add numbers to the tree (ADD), search for numbers in the tree (SEARCH), delete numbers from the tree (DELETE), and print the tree (PRINT). To quit type QUIT." << endl; 
 cout << "Valid entries include anything in the range from 1-999." << endl;    
 //Read in input
 cin >> input;
@@ -85,13 +85,12 @@ cin >> input;
         }
     }
     //If the user wants to delete
-    /*else if(strcmp(input, "DELETE") == 0){
+    else if(strcmp(input, "DELETE") == 0){
         cout << "Enter the number (In the tree) that you want to delete." << endl;
         cin >> input3;
         //Remove the number from the tree, if it's there
-        treeRemove(tree, tree, tree, input3);
+        treeRemove(tree, tree,tree->getParent(), input3);
     } 
-    */
    //Printing
     else if(strcmp(input, "PRINT") == 0){
         cout << endl;
@@ -352,4 +351,130 @@ void treeBalance(Tree* &head, Tree* &current){
     }
     //Reset head to black
     head->setColor(0);    
+}
+
+void treeRemove(Tree* current, Tree* &head, Tree* parent, int data){
+    //If there's nothing in the tree to delete
+    if(head == NULL){
+      cout << "Nothing in the tree to delete!" << endl;
+    }
+    //Otherwise
+    if(current != NULL){
+        //If the current node's data is equal to the input
+        if(current->getData() == data){
+            //If the current has no children
+            if(current->getLeft() == NULL && current->getRight() == NULL){
+                //If current is head (the only node in the tree)
+                if(current == head){
+                    delete head;
+                    head = NULL;
+                }
+                //If the current is the left child
+                else if(parent->getLeft() == current){
+                    parent->setLeft(NULL);
+                    delete current;
+                }
+                //Otherwise if the current is the right child
+                else{
+                    parent->setRight(NULL);
+                    delete current;
+                }
+            }
+            //Only right child present
+            else if(current->getLeft() == NULL){
+                //If current is head (the only node in the tree)
+                if(current == head){
+                    Tree* temp = head;
+                    head = head->getRight();
+                    delete temp;
+                }
+                //If the current is the parent's right child
+                else if(parent->getRight() == current){
+                    Tree* temp = current;
+                    parent->setRight(current->getRight());
+                    delete temp;
+                }
+                //If the current is the parent's left child
+                else{
+                    Tree* temp = current;
+                    parent->setLeft(current->getRight());
+                    delete temp;
+                }
+            }
+            //If only the left child is present
+            else if(current->getRight() == NULL){
+                if(current == head){
+                    Tree* temp = head;
+                    head = head->getLeft();
+                    delete temp;
+                }
+                //If the current is the parent's right child
+                else if(parent->getRight() == current){
+                    Tree* temp = current;
+                    parent->setRight(current->getLeft());
+                    delete temp;
+                }
+                //If the current is the parent's left child
+                else{
+                    Tree* temp = current;
+                    parent->setLeft(current->getLeft());
+                    delete temp;
+                }
+            }
+            //If both children are present
+            else{
+                //Replace it with the next smallest node, so go left once and right as far as you can
+                //Go left
+                Tree* temp2 = current->getLeft();
+                Tree* temp3 = current;
+                //Go right as far as possible
+                while(temp2->getRight() != NULL){
+                    temp3 = temp2;
+                    temp2 = temp2->getRight();
+                }
+                //Swap data
+                int newCurrent = temp2->getData();
+                int deleteData = current->getData();
+                temp2->setValue(deleteData);
+                current->setValue(newCurrent);
+                //If the node's left and right are NULL
+                if(temp2->getLeft() == NULL && temp2->getRight() == NULL){
+                    //If the node is it's parent's left
+                    if(temp3->getLeft() == temp2){
+                        temp3->setLeft(NULL);
+                    }
+                    //If the node is it's parent's right                    
+                    else{
+                        temp3->setRight(NULL);
+                    }
+                    //Delete the node
+                    Tree* temp4 = temp2;
+                    delete temp4;
+                }
+                //If the right is NULL (Only left exists)
+                else if(temp2->getRight() == NULL){
+                    Tree* temp4 = temp2;
+                    temp3->setLeft(temp2->getLeft());
+                    delete temp4;
+                    
+                }
+                //Only the left exists (Right is NULL)
+                else{
+                    Tree* temp4 = temp2;
+                    temp3->setRight(temp2->getRight());
+                    delete temp4;
+                }
+            }
+        }
+        //If the current's data is larger than the inputted data, go left
+        else if(current->getData() > data){
+            parent = current;
+            treeRemove(current->getLeft(),head, parent, data);
+        }
+        //Otherwise go right
+        else{
+            parent = current;
+            treeRemove(current->getRight(),head, parent, data);
+        }
+    }
 }

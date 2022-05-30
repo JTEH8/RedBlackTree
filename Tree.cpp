@@ -30,6 +30,7 @@ void Tree::setColor(int newColor){
 void Tree::setParent(Tree* newParent){
     parent = newParent;
 }
+
 //Get methods
 Tree* Tree::getParent(){
     return parent;
@@ -37,6 +38,48 @@ Tree* Tree::getParent(){
 
 Tree* Tree::getRight(){
     return right;
+}
+
+Tree* Tree::getSuccessor(Tree* sameTree){
+//Right as far as possible
+Tree* temp;
+while(sameTree->getRight() != NULL){
+    temp = sameTree->getRight();     
+    }
+    return temp;
+}
+
+Tree* Tree::getReplacement(){
+    //Left once and then right as far as possible
+    if(left != NULL && right != NULL){
+        return left->getSuccessor(left);
+    }
+    //If no children
+    else if(right == NULL && left == NULL){
+        return NULL;
+    } 
+    //If nod e has one child
+    else{
+        if(left != NULL){
+            return left;
+        }
+        else{
+            return right;
+        }
+    }
+    return NULL;
+}
+
+Tree* Tree::getSibling(Tree* sameTree){
+    if(parent == NULL){
+        return NULL;
+    }
+    else if(parent->getLeft() == sameTree){
+        return parent->getRight();
+    }
+    else{
+        return parent->getLeft();
+    }
 }
 
 int Tree::getData(){

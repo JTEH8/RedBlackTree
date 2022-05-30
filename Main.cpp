@@ -5,9 +5,12 @@
 
 /*
 Author: Jeffrey Teh
-Date Completed: 5/8/2022
-This is an implementation of a Red Black Tree
+Date Completed: 5/29/2022
+This is an implementation of a Red Black Tree (With deletion this time)
 Help for this project came from Nathan Zou and Jayden Huang
+
+*Some functions have been moved to class file of Tree
+
 */
 
 //Colors
@@ -41,8 +44,10 @@ void rbtADD(Tree* newTree, Tree* current, Tree* & head);
 void fileAdd(Tree* &head);
 void leftRotate(Tree* & head, Tree* & target);                                         
 void rightRotate(Tree* & head, Tree* & target);
-void treeRemove(Tree* current, Tree* &head, Tree* parent, int data);
+void treeRemove(Tree* &head, Tree* & deleted);
 void treeBalance(Tree* &head, Tree* &current);
+void RecolorDoubleBlack(Tree* &head, Tree* &changed);
+void swapValues(Tree* &a, Tree* &b);
 
 //Main method
 int main(){
@@ -87,9 +92,24 @@ cin >> input;
     //If the user wants to delete
     else if(strcmp(input, "DELETE") == 0){
         cout << "Enter the number (In the tree) that you want to delete." << endl;
-        cin >> input3;
+        int del = 0;
+        cin >> del;
         //Remove the number from the tree, if it's there
-        treeRemove(tree, tree,tree->getParent(), input3);
+        bool checkTree = search(tree, del);
+        if(checkTree == true){
+            //Go through the tree and delete.
+            Tree* temp = tree;
+            while(temp->getData() != del){
+                if(del > temp->getData()){
+                    temp = temp->getRight();
+                }
+                if(del < temp->getData()){
+                    temp = temp->getLeft();
+                }
+            }
+            treeRemove(tree, temp);
+            cout << input3 << " Deleted from the tree" << endl;
+        }
     } 
    //Printing
     else if(strcmp(input, "PRINT") == 0){
@@ -100,8 +120,9 @@ cin >> input;
     //Search the tree
     else if(strcmp(input, "SEARCH") == 0){
      cout << "What's the number that you want to search for?" << endl;
-        cin >> input3;
-        search(tree, input3);
+        int searched = 0;
+        cin >> searched;
+        search(tree, searched);
         }
     //Quit RBT
     else if(strcmp(input, "QUIT") == 0){
@@ -121,13 +142,13 @@ void treeAdd(Tree* newTree, Tree*& current, Tree*& previous, Tree* & head){
     //Otherwise if the new Tree's data is bigger
     else if(newTree->getData() > current->getData()){ 
         previous = current;
-        current = current->getLeft();
+        current = current->getRight();
         //And if the current Tree's right is NULL
         if(current == NULL){
             current = newTree;
-            previous->setLeft(current);
+            previous->setRight(current);
             current->setParent(previous);
-	    current->setColor(1);
+	        current->setColor(1);
             treeBalance(head, current);
             return;
             }
@@ -138,10 +159,10 @@ void treeAdd(Tree* newTree, Tree*& current, Tree*& previous, Tree* & head){
         }
         else{
         previous = current;
-        current = current->getRight();
+        current = current->getLeft();
         if(current == NULL){
             current = newTree;
-            previous->setRight(current);
+            previous->setLeft(current);
             current->setParent(previous);
 	    current->setColor(1);
 	    treeBalance(head,current);
@@ -175,9 +196,18 @@ void fileAdd(Tree* &head){
 	    }
 	    }
 }
+
+/*
+void printTree(Tree* start, Trunk* previous, bool isLeft){
+    if(start == NULL){
+        return;
+    }
+    if(t )
+}
+*/
 //https://algorithmtutor.com/Data-Structures/Tree/Red-Black-Trees/
 //Print function, with trunk structs
-void printTree(Tree* start, Trunk* previous, bool isLeft){
+void printTree(Tree* start, Trunk* previous, bool isRight){
 if(start == NULL){
         return;
     }
@@ -185,17 +215,17 @@ if(start == NULL){
     char* oldStr = (char*)("   ");
 
     Trunk* trunk = new Trunk(previous, oldStr);
-    printTree(start->getLeft(), trunk, true); 
+    printTree(start->getRight(), trunk, true); 
     //Formatting
     if(!previous){
         //Diffrentiating for head
         trunk->str = (char*)("---"); 
     }
-    else if(isLeft == true){
+    else if(isRight == true){
         //If it's a left child
         trunk->str = (char*)(".---");
         oldStr = (char*)("  |");     
-    }
+    }   
     else{
         //If it's a right child
         trunk->str = (char*)("'---");
@@ -215,29 +245,36 @@ if(start == NULL){
     }
     trunk->str = (char*)("   |");
     //GO right
-    printTree(start->getRight(), trunk, false);
+    printTree(start->getLeft(), trunk, false);
 }
 
-//Search for a number (Also helps to prevent duplicates)
+//Search for a number 
 bool search(Tree* head, int input){
   //If the tree is empty
     if(head == NULL){
         cout << "Number isn't the tree." << endl;
         return false;
     }
-    else if(head->getData() == input){
+    if(head->getData() == input){
       cout << "Your number is present in the tree!" << endl;
-      return true;
+      /*
+        if(head->getRight() != NULL){
+        cout << "Here is head's right child: (If applicable)" << head->getRight()->getData() << endl;
+        }
+        if(head->getLeft() != NULL){
+        cout << "Here is head's left child: (If applicable)" << head->getLeft()->getData() << endl;
+        }
+        */
+      return true; 
     }
     //If the data is larger than head, try going right
-    else if(head->getData() > input){
+    else if(head->getData() < input){
        search(head->getRight(),input);
     }
     //If the data is smaller than head, go left
-    else if(head->getData() < input){
+    else if(head->getData() > input){
       search(head->getLeft(), input);
     }
-    return false;
 }
 
 
@@ -350,131 +387,154 @@ void treeBalance(Tree* &head, Tree* &current){
         }
     }
     //Reset head to black
-    head->setColor(0);    
+    head->setColor(0)   ;    
+}
+void treeRemove(Tree* &head, Tree* &deleted){
+    Tree* replacement = deleted->getReplacement();
+    Tree* parent = deleted->getParent();
+    //If both are black (Use a boolean to store)
+     bool bothBlack = false;
+    if(((replacement == NULL) || (replacement->getColor())) && ((deleted == NULL || deleted->getColor() == 0))){
+        bothBlack = true;
+    }
+    //No children
+    if(replacement == NULL){
+        if(deleted == head){
+            head == NULL;
+        }
+        else{
+            if(bothBlack == true){
+                RecolorDoubleBlack(head, deleted);
+            }
+            else{
+                //If one is red, make the siblings red
+                if(deleted->getSibling(deleted) != NULL){
+                    deleted->getSibling(deleted)->setColor(1);
+                }
+            }
+            //Delete it from the tree
+            //If it's the left child
+            if(deleted == parent->getLeft()){
+                parent->setLeft(NULL);
+            }
+            //If it's the right child
+            else{
+                parent->setRight(NULL);
+            }
+        }
+        deleted->~Tree();
+        return;
+    }
+    if(deleted->getRight() == NULL || deleted->getLeft() == NULL){
+        if(deleted == head){
+            //Value goes from replacement to deleted node.
+            deleted->setValue(replacement->getData());
+            deleted->setLeft(NULL);
+            deleted->setRight(NULL);
+            replacement->~Tree();
+        }
+        else{
+            //Get the deleted from the tree and move the replacement up
+            if(deleted == parent->getLeft()){
+                parent->setLeft(replacement);
+            }
+            else{
+                parent->setRight(replacement);
+            }
+        deleted->~Tree();
+        replacement->setParent(parent);
+        if(bothBlack == true){
+            RecolorDoubleBlack(head, deleted);
+        }
+        else{
+        //If one of them is red, set the color to be Black
+            replacement->setColor(0);
+                }
+            }
+        return;
+        }
+        swapValues(replacement, deleted);
+        treeRemove(head, replacement);
+    }
+//Swaps values between the two nodes.
+void swapValues(Tree* &a, Tree* &b){
+    int temp = a->getData();
+    a->setValue(b->getData());
+    b->setValue(temp);
 }
 
-void treeRemove(Tree* current, Tree* &head, Tree* parent, int data){
-    //If there's nothing in the tree to delete
-    if(head == NULL){
-      cout << "Nothing in the tree to delete!" << endl;
+void RecolorDoubleBlack(Tree* &head, Tree* & changed){
+    if(changed == head){
+        return;
     }
-    //Otherwise
-    if(current != NULL){
-        //If the current node's data is equal to the input
-        if(current->getData() == data){
-            //If the current has no children
-            if(current->getLeft() == NULL && current->getRight() == NULL){
-                //If current is head (the only node in the tree)
-                if(current == head){
-                    delete head;
-                    head = NULL;
-                }
-                //If the current is the left child
-                else if(parent->getLeft() == current){
-                    parent->setLeft(NULL);
-                    delete current;
-                }
-                //Otherwise if the current is the right child
-                else{
-                    parent->setRight(NULL);
-                    delete current;
-                }
-            }
-            //Only right child present
-            else if(current->getLeft() == NULL){
-                //If current is head (the only node in the tree)
-                if(current == head){
-                    Tree* temp = head;
-                    head = head->getRight();
-                    delete temp;
-                }
-                //If the current is the parent's right child
-                else if(parent->getRight() == current){
-                    Tree* temp = current;
-                    parent->setRight(current->getRight());
-                    delete temp;
-                }
-                //If the current is the parent's left child
-                else{
-                    Tree* temp = current;
-                    parent->setLeft(current->getRight());
-                    delete temp;
-                }
-            }
-            //If only the left child is present
-            else if(current->getRight() == NULL){
-                if(current == head){
-                    Tree* temp = head;
-                    head = head->getLeft();
-                    delete temp;
-                }
-                //If the current is the parent's right child
-                else if(parent->getRight() == current){
-                    Tree* temp = current;
-                    parent->setRight(current->getLeft());
-                    delete temp;
-                }
-                //If the current is the parent's left child
-                else{
-                    Tree* temp = current;
-                    parent->setLeft(current->getLeft());
-                    delete temp;
-                }
-            }
-            //If both children are present
-            else{
-                //Replace it with the next smallest node, so go left once and right as far as you can
-                //Go left
-                Tree* temp2 = current->getLeft();
-                Tree* temp3 = current;
-                //Go right as far as possible
-                while(temp2->getRight() != NULL){
-                    temp3 = temp2;
-                    temp2 = temp2->getRight();
-                }
-                //Swap data
-                int newCurrent = temp2->getData();
-                int deleteData = current->getData();
-                temp2->setValue(deleteData);
-                current->setValue(newCurrent);
-                //If the node's left and right are NULL
-                if(temp2->getLeft() == NULL && temp2->getRight() == NULL){
-                    //If the node is it's parent's left
-                    if(temp3->getLeft() == temp2){
-                        temp3->setLeft(NULL);
-                    }
-                    //If the node is it's parent's right                    
-                    else{
-                        temp3->setRight(NULL);
-                    }
-                    //Delete the node
-                    Tree* temp4 = temp2;
-                    delete temp4;
-                }
-                //If the right is NULL (Only left exists)
-                else if(temp2->getRight() == NULL){
-                    Tree* temp4 = temp2;
-                    temp3->setLeft(temp2->getLeft());
-                    delete temp4;
-                    
-                }
-                //Only the left exists (Right is NULL)
-                else{
-                    Tree* temp4 = temp2;
-                    temp3->setRight(temp2->getRight());
-                    delete temp4;
-                }
-            }
+    Tree* sibling = changed->getSibling(changed);
+    Tree* parent = changed->getParent();
+    //If no sibling, push the double black up one.
+    if(sibling == NULL){
+        RecolorDoubleBlack(head, parent);
+    }
+    else{
+        //Red sibling
+        if(sibling->getColor() == 1){
+        parent->setColor(1);
+        sibling->setColor(0);
+        if(sibling == parent->getLeft()){
+            rightRotate(head,parent);
         }
-        //If the current's data is larger than the inputted data, go left
-        else if(current->getData() > data){
-            parent = current;
-            treeRemove(current->getLeft(),head, parent, data);
-        }
-        //Otherwise go right
         else{
-            parent = current;
-            treeRemove(current->getRight(),head, parent, data);
+            leftRotate(head, parent);
+        }
+        RecolorDoubleBlack(head, changed);
+        }
+        //Sibling is black
+        else{
+            //If sibling has red child
+            if((sibling->getLeft() != NULL && sibling->getLeft()->getColor() == 1) || (sibling->getRight() && sibling->getRight()->getColor() == 1)){
+                //Left child is red 
+                if(sibling->getLeft() != NULL && sibling->getLeft()->getColor() == 1){
+                    if(sibling == parent->getLeft()){
+                        //Sibling's left is red and sibling is parent's left
+                        sibling->getLeft()->setColor(sibling->getColor());
+                        sibling->setColor(parent->getColor());
+                        rightRotate(head, parent);
+                    }
+                    else{
+                        //Sibling's left is red and sibling is parent's right
+                        sibling->getLeft()->setColor(parent->getColor());
+                        rightRotate(head, sibling);
+                        leftRotate(head, parent);
+                    }
+                }
+                //Right Child is red
+                else{
+                    if(sibling == parent->getLeft()){
+                        //Sibling's right is red and sibling is parent's left
+                        sibling->getRight()->setColor(parent->getColor());
+                        leftRotate(head, sibling);
+                        rightRotate(head, parent);
+                    }
+                    else{
+                        //Sibling's right is red and sibling is parent's right
+                        sibling->getLeft()->setColor(sibling->getColor());
+                        sibling->setColor(parent->getColor());
+                        leftRotate(head, parent);
+                    }
+                }
+            //Set parent to black
+            parent->setColor(0);
+            }
+            //both children are black
+            else{
+                sibling->setColor(1);
+                //If parent is black
+                if(parent->getColor() == 0){
+                    RecolorDoubleBlack(head, parent);
+                }
+                else{
+                    //Set parent to black
+                    parent->setColor(0);
+                }
+            }
         }
     }
 }

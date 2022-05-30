@@ -26,6 +26,9 @@ int getData();
 Tree* getRight();
 Tree* getLeft();
 Tree* getParent();
+Tree* getSibling(Tree* sameTree);
+Tree* getReplacement();
+Tree* getSuccessor(Tree* sameTree);
 int getColor();
 };
 

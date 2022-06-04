@@ -5,7 +5,8 @@
 
 //Constructors
 Tree::Tree(int newVal){
-    parent = NULL;
+  data = 0;
+  parent = NULL;
     right = NULL;
     left = NULL;
     data = newVal;
@@ -42,33 +43,34 @@ Tree* Tree::getRight(){
 
 Tree* Tree::getSuccessor(Tree* sameTree){
 //Right as far as possible
-Tree* temp;
-while(sameTree->getRight() != NULL){
-    temp = sameTree->getRight();     
-    }
-    return temp;
-}
+ Tree* temp = sameTree;
+ if(sameTree->getRight() != NULL){
+   getSuccessor(sameTree->getRight());
+ }
+ else{
+ return temp;
+ }
+ }
 
 Tree* Tree::getReplacement(){
-    //Left once and then right as far as possible
+  //Left once and then right as far as possible
     if(left != NULL && right != NULL){
-        return left->getSuccessor(left);
+      return left->getSuccessor(left);
     }
     //If no children
     else if(right == NULL && left == NULL){
         return NULL;
     } 
-    //If nod e has one child
-    else{
-        if(left != NULL){
-            return left;
-        }
-        else{
-            return right;
-        }
+    //If node has one child
+    else if(left != NULL && right == NULL){
+      return left;
+    }
+    else if(left == NULL && right != NULL){
+      return right;
     }
     return NULL;
 }
+
 
 Tree* Tree::getSibling(Tree* sameTree){
     if(parent == NULL){
